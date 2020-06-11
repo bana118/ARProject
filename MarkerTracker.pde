@@ -513,6 +513,8 @@ class MarkerTracker {
             Marker marker = new Marker();
             marker.code = code;
 
+            
+
             marker.pose = estimateSquarePose(pointToPVectorArray(corners), (float)kMarkerSizeLength);
 		    markers.add(marker);
 

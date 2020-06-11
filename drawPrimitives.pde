@@ -39,7 +39,7 @@ void drawCylinder(float topRadius, float bottomRadius, float tall, int sides) {
   }
 }
 
-void drawSnowman(float s) {
+void drawSnowman(float s,boolean flag) {
     pushMatrix();
       translate(0, 0, -s/2);
       noFill();
@@ -52,14 +52,25 @@ void drawSnowman(float s) {
     pushMatrix();
       translate(0, 0, -s * 0.4);
       noStroke();
+      if(!flag)
+     {
       fill(255);
+     }
+     else
+      fill(0);
+      
       sphere(s * 0.4);
-      translate(0, 0, -s * 0.7);
+      
+
+
+
+
+     /* translate(0, 0, -s * 0.7);
       sphere(s * 0.3);
       translate(0, 0, -s * 0.5);
-      sphere(s * 0.2);
+      sphere(s * 0.2);*/
     popMatrix();
-
+/*
     // draw eyes
     pushMatrix();
       translate(s * 0.1, s * 0.08, -s * 1.7);
@@ -78,4 +89,5 @@ void drawSnowman(float s) {
       fill(255, 120, 0);
       drawCylinder(s * 0.05, 0, s * 0.15, 32);
     popMatrix();
+    */
 }

@@ -1,7 +1,7 @@
 import gab.opencv.*;
 import processing.video.*;
 
-final boolean MARKER_TRACKER_DEBUG = false;
+final boolean MARKER_TRACKER_DEBUG = true;
 final boolean BALL_DEBUG = false;
 
 final boolean USE_SAMPLE_IMAGE = false;
@@ -24,14 +24,16 @@ OpenCV opencv;
 float fov = 45; // for camera capture
 
 // Marker codes to draw snowmans
-// final int[] towardsList = {0x1228, 0x0690};
+ final int[] towardsList = {0x1c44, 0x272,0xb44,0x1228};
 // int towards = 0x1228; // the target marker that the ball flies towards
 int towardscnt = 0;   // if ball reached, +1 to change the target
 
-final int[] towardsList = {0x005A, 0x0272};
+//final int[] towardsList = {0x005A, 0x0272};
 int towards = 0x005A;
 
 final float GA = 9.80665;
+
+
 
 PVector snowmanLookVector;
 PVector ballPos;
@@ -105,7 +107,10 @@ void setup() {
   // Align the camera coordinate system with the world coordinate system
   // (cf. drawSnowman.pde)
   PMatrix3D cameraMat = ((PGraphicsOpenGL)g).camera;
+
   cameraMat.reset();
+
+  
 
   keyState = new KeyState();
 
@@ -116,6 +121,7 @@ void setup() {
 
 
 void draw() {
+   PMatrix3D cameraMat = ((PGraphicsOpenGL)g).camera;
   ArrayList<Marker> markers = new ArrayList<Marker>();
   markerPoseMap.clear();
 
@@ -152,6 +158,10 @@ void draw() {
   ambientLight(180, 180, 180);
   directionalLight(180, 150, 120, 0, 1, 0);
   lights();
+ 
+  
+  //println("markersize"+markers.size());
+
 
   // for each marker, put (code, matrix) on hashmap 
   for (int i = 0; i < markers.size(); i++) {
@@ -159,59 +169,67 @@ void draw() {
     markerPoseMap.put(m.code, m.pose);
   }
 
+
+
+
+
+
+
+
+
+int min_i=-1;
+  float min_float=50f;
+
+
+
   // The snowmen face each other
-  for (int i = 0; i < 2; i++) {
+  for (int i = 0; i < 4; i++) {
     PMatrix3D pose_this = markerPoseMap.get(towardsList[i]);
-    PMatrix3D pose_look = markerPoseMap.get(towardsList[(i+1)%2]);
 
-    if (pose_this == null || pose_look == null)
-      break;
+    if (pose_this == null )
+      continue;
 
-    float angle = rotateToMarker(pose_this, pose_look, towardsList[i]);
+   // float angle = rotateToMarker(pose_this, pose_look, towardsList[i]);
+
+  
 
     pushMatrix();
+    
       // apply matrix (cf. drawSnowman.pde)
       applyMatrix(pose_this);
-      rotateZ(angle);
+      //rotateX(angle);
 
       // draw snowman
-      drawSnowman(snowmanSize);
+      
+      drawSnowman(snowmanSize,false);
+PVector relativeVector = new PVector();
+ relativeVector.x = cameraMat.m03 - pose_this.m03;
+          relativeVector.y =cameraMat.m13 - pose_this.m13;
+          relativeVector.z=cameraMat.m23 - pose_this.m23;
+    
+float relativeLen = abs(relativeVector.mag());
+println("camera to marker distance"+relativeLen);
+
+if(relativeLen<min_float)
+{
+min_float=relativeLen;
+min_i=i;
+}
+
+
+ 
+
+
+
+   // 
+
+
+
+    
+
 
       // move ball
-      if (towardsList[i] == towards) {
-        pushMatrix();
-          PVector relativeVector = new PVector();
-          relativeVector.x = pose_look.m03 - pose_this.m03;
-          relativeVector.y = pose_look.m13 - pose_this.m13;
-          float relativeLen = relativeVector.mag();
 
-          ballspeed = sqrt(GA * relativeLen / sin(radians(ballAngle) * 2));
-          ballPos.x = frameCnt * relativeLen / ballTotalFrame;
-
-          float z_quad = GA * pow(ballPos.x, 2) / (2 * pow(ballspeed, 2) * pow(cos(radians(ballAngle)), 2));
-          ballPos.z = -tan(radians(ballAngle)) * ballPos.x + z_quad;
-          frameCnt++;
-
-          if (BALL_DEBUG)
-            println(ballPos, tan(radians(ballAngle)) * ballPos.x,  z_quad);
-
-          translate(ballPos.x, ballPos.y, ballPos.z - 0.025);
-          noStroke();
-          fill(255, 0, 0);
-          sphere(0.003);
-
-          if (frameCnt == ballTotalFrame) {
-            ballPos = new PVector();
-            towardscnt++;
-            towards = towardsList[towardscnt % 2];
-            ballAngle = random(20, 70);
-            frameCnt = 0;
-
-            if (BALL_DEBUG)
-              println("towards:", hex(towards));
-          }
-        popMatrix();
-      }
 
       noFill();
       strokeWeight(3);
@@ -225,6 +243,21 @@ void draw() {
   }
   // Your Code for Homework 6 (20/06/03) - End
   // **********************************************
+   
+  
+
+  
+
+   if(min_i!=-1&&min_float<0.05)
+   {
+     pushMatrix();
+     applyMatrix(markerPoseMap.get(towardsList[min_i]));
+     drawSnowman(snowmanSize,true);
+     popMatrix();
+   }
+
+
+  
 
   noLights();
   keyState.getKeyEvent();
