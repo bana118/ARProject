@@ -122,7 +122,7 @@ void setup() {
   markerPoseMap = new HashMap<Integer, PMatrix3D>();  // hashmap (code, pose)
 
 
-d=new Detection();
+d=new Detection();//initial of Detection class
 
 }
 
