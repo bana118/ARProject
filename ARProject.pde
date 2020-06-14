@@ -4,7 +4,7 @@ import processing.video.*;
 final boolean MARKER_TRACKER_DEBUG = true;
 final boolean BALL_DEBUG = false;
 
-final boolean USE_SAMPLE_IMAGE = false;
+final boolean USE_SAMPLE_IMAGE = true;
 
 // We've found that some Windows build-in cameras (e.g. Microsoft Surface)
 // cannot work with processing.video.Capture.*.
@@ -138,7 +138,6 @@ void draw() {
     }
   }
 
-
   // Your Code for Homework 6 (20/06/03) - Start
   // **********************************************
 
@@ -159,7 +158,6 @@ void draw() {
   directionalLight(180, 150, 120, 0, 1, 0);
   lights();
  
-  
   //println("markersize"+markers.size());
 
 
@@ -168,69 +166,37 @@ void draw() {
     Marker m = markers.get(i);
     markerPoseMap.put(m.code, m.pose);
   }
-
-
-
-
-
-
-
-
-
-int min_i=-1;
+  int min_i=-1;
   float min_float=50f;
-
-
-
   // The snowmen face each other
   for (int i = 0; i < 4; i++) {
     PMatrix3D pose_this = markerPoseMap.get(towardsList[i]);
-
     if (pose_this == null )
       continue;
-
    // float angle = rotateToMarker(pose_this, pose_look, towardsList[i]);
-
-  
-
     pushMatrix();
-    
       // apply matrix (cf. drawSnowman.pde)
       applyMatrix(pose_this);
       //rotateX(angle);
-
       // draw snowman
-      
-      drawSnowman(snowmanSize,false);
-PVector relativeVector = new PVector();
- relativeVector.x = cameraMat.m03 - pose_this.m03;
-          relativeVector.y =cameraMat.m13 - pose_this.m13;
-          relativeVector.z=cameraMat.m23 - pose_this.m23;
-    
-float relativeLen = abs(relativeVector.mag());
-println("camera to marker distance"+relativeLen);
+      //drawSnowman(snowmanSize,false);
+      //draw apple
+      drawModel("apple.obj", 0.02);
 
-if(relativeLen<min_float)
-{
-min_float=relativeLen;
-min_i=i;
-}
+      PVector relativeVector = new PVector();
+      relativeVector.x = cameraMat.m03 - pose_this.m03;
+      relativeVector.y = cameraMat.m13 - pose_this.m13;
+      relativeVector.z = cameraMat.m23 - pose_this.m23;
 
+      float relativeLen = abs(relativeVector.mag());
+      println("camera to marker distance"+relativeLen);
 
- 
-
-
-
-   // 
-
-
-
-    
-
-
+      if(relativeLen<min_float)
+      {
+      min_float=relativeLen;
+      min_i=i;
+      }
       // move ball
-
-
       noFill();
       strokeWeight(3);
       stroke(255, 0, 0);
@@ -243,11 +209,6 @@ min_i=i;
   }
   // Your Code for Homework 6 (20/06/03) - End
   // **********************************************
-   
-  
-
-  
-
    if(min_i!=-1&&min_float<0.05)
    {
      pushMatrix();
@@ -255,13 +216,8 @@ min_i=i;
      drawSnowman(snowmanSize,true);
      popMatrix();
    }
-
-
-  
-
   noLights();
   keyState.getKeyEvent();
-
   System.gc();
 }
 
