@@ -19,7 +19,7 @@ class Marker {
     int code;
     PMatrix3D pose;
     // float[] pose;
-
+    ArrayList<Marker> markers;
     Marker() {
         pose = new PMatrix3D();
     }
@@ -515,6 +515,7 @@ class MarkerTracker {
 
             
 
+            
             marker.pose = estimateSquarePose(pointToPVectorArray(corners), (float)kMarkerSizeLength);
 		    markers.add(marker);
 
@@ -524,6 +525,7 @@ class MarkerTracker {
             }
             // Added in Homework 5 (2020/6/3) - End
             // **************************************************************
+      
         } // end of loop over contour candidates
 
         // If debugging, draw thresholds to be used for marker tracking
@@ -534,4 +536,5 @@ class MarkerTracker {
             text("bw_thresh : " + bw_thresh, width-200, 80);
         }
     }
+     
 }
