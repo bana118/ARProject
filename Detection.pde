@@ -47,7 +47,6 @@ class Detection
 
     int min_i = -1;
     float min_float = 50f;
-    float detectDistance = 0.03;
     DetectionRet ret = new DetectionRet();
     ret.pos = new PMatrix3D[4];
     PMatrix3D pose_fourth = markerPoseMap.get(towardsList[3]);
