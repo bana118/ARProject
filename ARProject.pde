@@ -11,7 +11,6 @@ final boolean USE_SAMPLE_IMAGE = true;
 // Instead we use DirectShow Library to launch these cameras.
 final boolean USE_DIRECTSHOW = true;
 
-
 // final double kMarkerSize = 0.036; // [m]
 final double kMarkerSize = 0.024; // [m]
 
@@ -24,16 +23,14 @@ OpenCV opencv;
 float fov = 45; // for camera capture
 
 // Marker codes to draw snowmans
- final int[] towardsList = {0x1228, 0x690,0x5a,0x272};
+final int[] towardsList = {0x1228, 0x690, 0x5a, 0x272};
 // int towards = 0x1228; // the target marker that the ball flies towards
-int towardscnt = 0;   // if ball reached, +1 to change the target
+int towardscnt = 0; // if ball reached, +1 to change the target
 
 //final int[] towardsList = {0x005A, 0x0272};
 int towards = 0x005A;
 
 final float GA = 9.80665;
-
-
 
 PVector snowmanLookVector;
 PVector ballPos;
@@ -51,16 +48,22 @@ PImage img;
 
 KeyState keyState;
 
-void selectCamera() {
+void selectCamera()
+{
   String[] cameras = Capture.list();
 
-  if (cameras == null) {
+  if (cameras == null)
+  {
     println("Failed to retrieve the list of available cameras, will try the default");
     cap = new Capture(this, 640, 480);
-  } else if (cameras.length == 0) {
+  }
+  else if (cameras.length == 0)
+  {
     println("There are no cameras available for capture.");
     exit();
-  } else {
+  }
+  else
+  {
     println("Available cameras:");
     printArray(cameras);
 
@@ -73,19 +76,26 @@ void selectCamera() {
   }
 }
 
-void settings() {
-  if (USE_SAMPLE_IMAGE) {
+void settings()
+{
+  if (USE_SAMPLE_IMAGE)
+  {
     // Here we introduced a new test image in Lecture 6 (20/05/27)
     size(1280, 720, P3D);
     opencv = new OpenCV(this, "./marker_test2.jpg");
     // size(1000, 730, P3D);
     // opencv = new OpenCV(this, "./marker_test.jpg");
-  } else {
-    if (USE_DIRECTSHOW) {
+  }
+  else
+  {
+    if (USE_DIRECTSHOW)
+    {
       dcap = new DCapture();
       size(dcap.width, dcap.height, P3D);
       opencv = new OpenCV(this, dcap.width, dcap.height);
-    } else {
+    }
+    else
+    {
       selectCamera();
       size(cap.width, cap.height, P3D);
       opencv = new OpenCV(this, cap.width, cap.height);
@@ -93,10 +103,9 @@ void settings() {
   }
 }
 
-
-
 Detection d;
-void setup() {
+void setup()
+{
   background(0);
   smooth();
   // frameRate(10);
@@ -113,38 +122,33 @@ void setup() {
 
   cameraMat.reset();
 
-  
-
   keyState = new KeyState();
 
   // Added on Homework 6 (2020/6/10)
-  ballPos = new PVector();  // ball position
-  markerPoseMap = new HashMap<Integer, PMatrix3D>();  // hashmap (code, pose)
+  ballPos = new PVector();                           // ball position
+  markerPoseMap = new HashMap<Integer, PMatrix3D>(); // hashmap (code, pose)
 
-
-d=new Detection();//initial of Detection class
-
+  d = new Detection(); //initial of Detection class
 }
 
+void draw()
+{
 
-
-
-
-
-void draw() {
-  
-
-
-  PMatrix3D cameraMat =null;
+  PMatrix3D cameraMat = null;
   ArrayList<Marker> markers = new ArrayList<Marker>();
   markerPoseMap.clear();
 
-  if (!USE_SAMPLE_IMAGE) {
-    if (USE_DIRECTSHOW) {
+  if (!USE_SAMPLE_IMAGE)
+  {
+    if (USE_DIRECTSHOW)
+    {
       img = dcap.updateImage();
       opencv.loadImage(img);
-    } else {
-      if (cap.width <= 0 || cap.height <= 0) {
+    }
+    else
+    {
+      if (cap.width <= 0 || cap.height <= 0)
+      {
         println("Incorrect capture data. continue");
         return;
       }
@@ -153,69 +157,73 @@ void draw() {
   }
   ortho();
   pushMatrix();
-    translate(-width/2, -height/2,-(height/2)/tan(radians(fov)));
-    markerTracker.findMarker(markers);
+  translate(-width / 2, -height / 2, -(height / 2) / tan(radians(fov)));
+  markerTracker.findMarker(markers);
   popMatrix();
 
   // use perspective camera
-  perspective(radians(fov), float(width)/float(height), 0.01, 1000.0);
+  perspective(radians(fov), float(width) / float(height), 0.01, 1000.0);
 
   // setup light
   // (cf. drawSnowman.pde)
   ambientLight(180, 180, 180);
   directionalLight(180, 150, 120, 0, 1, 0);
   lights();
- 
+
   //println("markersize"+markers.size());
 
-
-  // for each marker, put (code, matrix) on hashmap 
-  for (int i = 0; i < markers.size(); i++) {
+  // for each marker, put (code, matrix) on hashmap
+  for (int i = 0; i < markers.size(); i++)
+  {
     Marker m = markers.get(i);
     markerPoseMap.put(m.code, m.pose);
   }
 
-DetectionRet d_ret=d.detect();
+  DetectionRet d_ret = d.detect();
 
   // The snowmen face each other
-  for (int i = 0; i < 4; i++) {
-    PMatrix3D pose_this =d_ret.pos[i];
+  for (int i = 0; i < 4; i++)
+  {
+    PMatrix3D pose_this = d_ret.pos[i];
 
-    if(pose_this==null)continue;
+    if (pose_this == null)
+      continue;
 
     pushMatrix();
-      // apply matrix (cf. drawSnowman.pde)
-      applyMatrix(pose_this);
-      //rotateX(angle);
+    // apply matrix (cf. drawSnowman.pde)
+    applyMatrix(pose_this);
+    //rotateX(angle);
 
-      if(d_ret.min_flag==true && d_ret.min_num==i)
-        drawModel("apple.obj");//draw bad
-      else
-        drawModel("bad_apple.obj");//draw ok
+    if (d_ret.min_flag == true && d_ret.min_num == i)
+      drawModel("apple.obj", 0.02); //draw bad
+    else
+      drawModel("bad_apple.obj", 0.02); //draw ok
 
-      noFill();
-      strokeWeight(3);
-      stroke(255, 0, 0);
-      line(0, 0, 0, 0.02, 0, 0); // draw x-axis
-      stroke(0, 255, 0);
-      line(0, 0, 0, 0, 0.02, 0); // draw y-axis
-      stroke(0, 0, 255);
-      line(0, 0, 0, 0, 0, 0.02); // draw z-axis
+    // noFill();
+    // strokeWeight(3);
+    // stroke(255, 0, 0);
+    // line(0, 0, 0, 0.02, 0, 0); // draw x-axis
+    // stroke(0, 255, 0);
+    // line(0, 0, 0, 0, 0.02, 0); // draw y-axis
+    // stroke(0, 0, 255);
+    // line(0, 0, 0, 0, 0, 0.02); // draw z-axis
     popMatrix();
   }
-  d.save();//need to be added at the bottom of the draw()
+  d.save(); //need to be added at the bottom of the draw()
   noLights();
   keyState.getKeyEvent();
   System.gc();
 }
 
-void captureEvent(Capture c) {
+void captureEvent(Capture c)
+{
   PGraphics3D g;
   if (!USE_DIRECTSHOW && c.available())
-      c.read();
+    c.read();
 }
 
-float rotateToMarker(PMatrix3D thisMarker, PMatrix3D lookAtMarker, int markernumber) {
+float rotateToMarker(PMatrix3D thisMarker, PMatrix3D lookAtMarker, int markernumber)
+{
   PVector relativeVector = new PVector();
   relativeVector.x = lookAtMarker.m03 - thisMarker.m03;
   relativeVector.y = lookAtMarker.m13 - thisMarker.m13;
@@ -238,4 +246,3 @@ float rotateToMarker(PMatrix3D thisMarker, PMatrix3D lookAtMarker, int markernum
 
   return angle;
 }
-
