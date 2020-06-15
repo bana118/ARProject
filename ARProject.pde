@@ -24,7 +24,7 @@ OpenCV opencv;
 float fov = 45; // for camera capture
 
 // Marker codes to draw snowmans
- final int[] towardsList = {0x1c44, 0x272,0xb44,0x1228};
+ final int[] towardsList = {0x1228, 0x690,0x5a,0x272};
 // int towards = 0x1228; // the target marker that the ball flies towards
 int towardscnt = 0;   // if ball reached, +1 to change the target
 
@@ -93,6 +93,9 @@ void settings() {
   }
 }
 
+
+
+Detection d;
 void setup() {
   background(0);
   smooth();
@@ -117,11 +120,22 @@ void setup() {
   // Added on Homework 6 (2020/6/10)
   ballPos = new PVector();  // ball position
   markerPoseMap = new HashMap<Integer, PMatrix3D>();  // hashmap (code, pose)
+
+
+d=new Detection();//initial of Detection class
+
 }
 
 
+
+
+
+
 void draw() {
-   PMatrix3D cameraMat = ((PGraphicsOpenGL)g).camera;
+  
+
+
+  PMatrix3D cameraMat =null;
   ArrayList<Marker> markers = new ArrayList<Marker>();
   markerPoseMap.clear();
 
@@ -137,12 +151,6 @@ void draw() {
       opencv.loadImage(cap);
     }
   }
-
-  // Your Code for Homework 6 (20/06/03) - Start
-  // **********************************************
-
-  // use orthographic camera to draw images and debug lines
-  // translate matrix to image center
   ortho();
   pushMatrix();
     translate(-width/2, -height/2,-(height/2)/tan(radians(fov)));
@@ -166,37 +174,25 @@ void draw() {
     Marker m = markers.get(i);
     markerPoseMap.put(m.code, m.pose);
   }
-  int min_i=-1;
-  float min_float=50f;
+
+DetectionRet d_ret=d.detect();
+
   // The snowmen face each other
   for (int i = 0; i < 4; i++) {
-    PMatrix3D pose_this = markerPoseMap.get(towardsList[i]);
-    if (pose_this == null )
-      continue;
-   // float angle = rotateToMarker(pose_this, pose_look, towardsList[i]);
+    PMatrix3D pose_this =d_ret.pos[i];
+
+    if(pose_this==null)continue;
+
     pushMatrix();
       // apply matrix (cf. drawSnowman.pde)
       applyMatrix(pose_this);
       //rotateX(angle);
-      // draw snowman
-      //drawSnowman(snowmanSize,false);
-      //draw apple
-      drawModel("apple.obj", 0.02);
 
-      PVector relativeVector = new PVector();
-      relativeVector.x = cameraMat.m03 - pose_this.m03;
-      relativeVector.y = cameraMat.m13 - pose_this.m13;
-      relativeVector.z = cameraMat.m23 - pose_this.m23;
+      if(d_ret.min_flag==true && d_ret.min_num==i)
+        drawModel("apple.obj");//draw bad
+      else
+        drawModel("bad_apple.obj");//draw ok
 
-      float relativeLen = abs(relativeVector.mag());
-      println("camera to marker distance"+relativeLen);
-
-      if(relativeLen<min_float)
-      {
-      min_float=relativeLen;
-      min_i=i;
-      }
-      // move ball
       noFill();
       strokeWeight(3);
       stroke(255, 0, 0);
@@ -207,15 +203,7 @@ void draw() {
       line(0, 0, 0, 0, 0, 0.02); // draw z-axis
     popMatrix();
   }
-  // Your Code for Homework 6 (20/06/03) - End
-  // **********************************************
-   if(min_i!=-1&&min_float<0.05)
-   {
-     pushMatrix();
-     applyMatrix(markerPoseMap.get(towardsList[min_i]));
-     drawSnowman(snowmanSize,true);
-     popMatrix();
-   }
+  d.save();//need to be added at the bottom of the draw()
   noLights();
   keyState.getKeyEvent();
   System.gc();
