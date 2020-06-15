@@ -4,7 +4,7 @@ import processing.video.*;
 final boolean MARKER_TRACKER_DEBUG = true;
 final boolean BALL_DEBUG = false;
 
-final boolean USE_SAMPLE_IMAGE = true;
+final boolean USE_SAMPLE_IMAGE = false;
 
 // We've found that some Windows build-in cameras (e.g. Microsoft Surface)
 // cannot work with processing.video.Capture.*.
@@ -23,12 +23,14 @@ OpenCV opencv;
 float fov = 45; // for camera capture
 
 // Marker codes to draw snowmans
-final int[] towardsList = {0x1228, 0x690, 0x5a, 0x272};
+final int[] towardsList = {0x1228, 0x0690, 0x005a, 0x0272};
 // int towards = 0x1228; // the target marker that the ball flies towards
 int towardscnt = 0; // if ball reached, +1 to change the target
 
+int forthToward = 0x0272;
+
 //final int[] towardsList = {0x005A, 0x0272};
-int towards = 0x005A;
+//int towards = 0x005A;
 
 final float GA = 9.80665;
 
@@ -184,20 +186,27 @@ void draw()
   // The snowmen face each other
   for (int i = 0; i < 4; i++)
   {
-    PMatrix3D pose_this = d_ret.pos[i];
-
-    if (pose_this == null)
-      continue;
-
-    pushMatrix();
-    // apply matrix (cf. drawSnowman.pde)
-    applyMatrix(pose_this);
-    //rotateX(angle);
-
-    if (d_ret.min_flag == true && d_ret.min_num == i)
-      drawModel("apple.obj", 0.02); //draw bad
+    if (i == 3)
+    {
+    }
     else
-      drawModel("bad_apple.obj", 0.02); //draw ok
+    {
+      PMatrix3D pose_this = d_ret.pos[i];
+
+      if (pose_this == null)
+        continue;
+
+      pushMatrix();
+      // apply matrix (cf. drawSnowman.pde)
+      applyMatrix(pose_this);
+      //rotateX(angle);
+
+      if (d_ret.min_flag == true && d_ret.min_num == i)
+        drawModel("bad_apple.obj", 0.02); //draw bad
+      else
+        drawModel("apple.obj", 0.02); //draw ok
+      popMatrix();
+    }
 
     // noFill();
     // strokeWeight(3);
@@ -207,7 +216,7 @@ void draw()
     // line(0, 0, 0, 0, 0.02, 0); // draw y-axis
     // stroke(0, 0, 255);
     // line(0, 0, 0, 0, 0, 0.02); // draw z-axis
-    popMatrix();
+    //popMatrix();
   }
   d.save(); //need to be added at the bottom of the draw()
   noLights();
