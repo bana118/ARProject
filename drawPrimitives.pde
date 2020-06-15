@@ -91,3 +91,21 @@ void drawSnowman(float s,boolean flag) {
     popMatrix();
     */
 }
+void drawScore(int score){
+  pushMatrix();
+    fill(0, 255,0);
+    textSize(50);      
+    text("Score: "+score,width-200, 50);
+  popMatrix();
+
+}
+
+void drawStart(String txt){
+  pushMatrix();
+    fill(random(255),random(255),random(255));
+    textSize(150);  
+    textAlign(CENTER);    
+    text(txt,width/2,height/2);
+  popMatrix();
+  
+}
