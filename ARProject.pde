@@ -24,10 +24,9 @@ float fov = 45; // for camera capture
 
 // Marker codes to draw snowmans
 final int[] towardsList = {0x1228, 0x0690, 0x005a, 0x0272};
+int badAppleNumber = (int)random(3); //0 ~ 2
 // int towards = 0x1228; // the target marker that the ball flies towards
-int towardscnt = 0; // if ball reached, +1 to change the target
-
-int forthToward = 0x0272;
+// int towardscnt = 0; // if ball reached, +1 to change the target
 
 //final int[] towardsList = {0x005A, 0x0272};
 //int towards = 0x005A;
@@ -182,12 +181,21 @@ void draw()
   }
 
   DetectionRet d_ret = d.detect();
-
-  // The snowmen face each other
+  println("bad apple marker:" + towardsList[badAppleNumber]);
   for (int i = 0; i < 4; i++)
   {
     if (i == 3)
     {
+      // forth marker draw
+      PMatrix3D pose_this = d_ret.pos[i];
+
+      if (pose_this == null)
+        continue;
+      pushMatrix();
+      // apply matrix (cf. drawSnowman.pde)
+      applyMatrix(pose_this);
+      drawModel("witch.obj", 0.02, -PI/2);
+      popMatrix();
     }
     else
     {
@@ -200,23 +208,12 @@ void draw()
       // apply matrix (cf. drawSnowman.pde)
       applyMatrix(pose_this);
       //rotateX(angle);
-
-      if (d_ret.min_flag == true && d_ret.min_num == i)
-        drawModel("bad_apple.obj", 0.02); //draw bad
+      if (d_ret.min_flag == true && d_ret.min_num == i && badAppleNumber == i)
+        drawModel("bad_apple.obj", 0.02, PI/2); //draw bad
       else
-        drawModel("apple.obj", 0.02); //draw ok
+        drawModel("apple.obj", 0.02, PI/2); //draw ok
       popMatrix();
     }
-
-    // noFill();
-    // strokeWeight(3);
-    // stroke(255, 0, 0);
-    // line(0, 0, 0, 0.02, 0, 0); // draw x-axis
-    // stroke(0, 255, 0);
-    // line(0, 0, 0, 0, 0.02, 0); // draw y-axis
-    // stroke(0, 0, 255);
-    // line(0, 0, 0, 0, 0, 0.02); // draw z-axis
-    //popMatrix();
   }
   d.save(); //need to be added at the bottom of the draw()
   noLights();
