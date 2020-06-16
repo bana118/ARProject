@@ -1,7 +1,7 @@
 import gab.opencv.*;
 import processing.video.*;
 
-final boolean MARKER_TRACKER_DEBUG = true;
+final boolean MARKER_TRACKER_DEBUG = false;
 final boolean BALL_DEBUG = false;
 
 final boolean USE_SAMPLE_IMAGE = false;
@@ -24,7 +24,6 @@ float fov = 45; // for camera capture
 
 // Marker codes to draw snowmans
 final int[] towardsList = {0x1228, 0x0690, 0x005a, 0x0272};
-int badAppleNumber = (int)random(3); //0 ~ 2
 // int towards = 0x1228; // the target marker that the ball flies towards
 // int towardscnt = 0; // if ball reached, +1 to change the target
 
@@ -32,6 +31,11 @@ int badAppleNumber = (int)random(3); //0 ~ 2
 //int towards = 0x005A;
 
 final float GA = 9.80665;
+int score = 0;
+int bad_apple = 0;
+boolean game_init=true;
+boolean game_init_flag=false;
+long t0=System.currentTimeMillis();
 
 PVector snowmanLookVector;
 PVector ballPos;
@@ -105,8 +109,8 @@ void settings()
 }
 
 Detection d;
-void setup()
-{
+void setup() {
+  int score = 0; 
   background(0);
   smooth();
   // frameRate(10);
@@ -132,10 +136,12 @@ void setup()
   d = new Detection(); //initial of Detection class
 }
 
-void draw()
-{
 
-  PMatrix3D cameraMat = null;
+void draw() {
+  
+  
+
+  PMatrix3D cameraMat =null;
   ArrayList<Marker> markers = new ArrayList<Marker>();
   markerPoseMap.clear();
 
@@ -158,8 +164,63 @@ void draw()
   }
   ortho();
   pushMatrix();
-  translate(-width / 2, -height / 2, -(height / 2) / tan(radians(fov)));
-  markerTracker.findMarker(markers);
+    translate(-width/2, -height/2,-(height/2)/tan(radians(fov)));
+    markerTracker.findMarker(markers);
+    drawScore(score);
+  
+    if(game_init==true){ //Reset/Init the game here
+      
+
+      long t1=System.currentTimeMillis();
+      
+      if (game_init_flag==false){
+        float rand=random(1);
+        if (rand<1/3){
+          bad_apple=0;
+        }
+        else if (rand > 2/3){
+          bad_apple=2;
+        }
+        else{
+          bad_apple=1;
+        }
+        //bad_apple=(int) random(1)*10/3;
+        
+        println(bad_apple);
+        game_init_flag=true;
+        t0=System.currentTimeMillis();
+      }
+      long dt=t1-t0;
+      //println(dt);
+      if (dt<1000){
+        drawStart("Start");
+      }
+      if (dt>1000 && dt<2000){ 
+        drawStart("3");
+      }
+      if (dt>2000 && dt<3000){
+        drawStart("2");
+      }
+      if (dt>3000 && dt<4000){
+        drawStart("1");
+      }
+      if (dt>4000 && dt<5000){
+        drawStart("GO");
+      }
+      if (dt>5000 && dt<6000){
+        game_init_flag=false;
+        game_init=false;
+      }
+
+
+    }
+  // for each marker, put (code, matrix) on hashmap 
+  for (int i = 0; i < markers.size(); i++) {
+    Marker m = markers.get(i);
+    markerPoseMap.put(m.code, m.pose);
+    //println(m.code);
+  }
+
   popMatrix();
 
   // use perspective camera
@@ -171,54 +232,76 @@ void draw()
   directionalLight(180, 150, 120, 0, 1, 0);
   lights();
 
-  //println("markersize"+markers.size());
+  DetectionRet d_ret=d.detect();
+  
+  for (int i = 0; i < 4; i++) {
+    PMatrix3D pose_this =d_ret.pos[i];
 
-  // for each marker, put (code, matrix) on hashmap
-  for (int i = 0; i < markers.size(); i++)
-  {
-    Marker m = markers.get(i);
-    markerPoseMap.put(m.code, m.pose);
+    if(pose_this==null)continue;
+
+    pushMatrix();
+    
+    // apply matrix (cf. drawSnowman.pde)
+    applyMatrix(pose_this);
+    //rotateX(angle);
+  
+   if (game_init==false){
+   // draw apple
+       if(i == 3){
+drawModel("witch.obj", 0.02, -PI/2);
+       }else{
+       if(d_ret.min_flag==true && d_ret.min_num==i && d_ret.min_num == bad_apple){
+         drawModel("bad_apple.obj", 0.02, PI/2); //draw bad
+       }else{
+         drawModel("apple.obj", 0.02, PI/2); //draw ok
+       }
+       }
+      //drawSnowman(snowmanSize,false);
+      if (d_ret.min_flag==true){
+        println("min_flg:"+d_ret.min_flag);
+        println("bad_apple:"+bad_apple);
+        if (d_ret.min_num==bad_apple){
+          score+=1;
+          //println("Restart1");
+          //win animation here
+          game_init=true;
+        
+        }
+        else {
+          //println("Restart2");
+          score-=1;
+          //lose animation here
+          game_init=true;
+        
+        }
+      }
+   }
+   
+
+
+      // noFill();
+      // strokeWeight(3);
+      // stroke(255, 0, 0);
+      // line(0, 0, 0, 0.02, 0, 0); // draw x-axis
+      // stroke(0, 255, 0);
+      // line(0, 0, 0, 0, 0.02, 0); // draw y-axis
+      // stroke(0, 0, 255);
+      // line(0, 0, 0, 0, 0, 0.02); // draw z-axis
+    popMatrix();
   }
+  
 
-  DetectionRet d_ret = d.detect();
-  println("bad apple marker:" + towardsList[badAppleNumber]);
-  for (int i = 0; i < 4; i++)
-  {
-    if (i == 3)
-    {
-      // forth marker draw
-      PMatrix3D pose_this = d_ret.pos[i];
 
-      if (pose_this == null)
-        continue;
-      pushMatrix();
-      // apply matrix (cf. drawSnowman.pde)
-      applyMatrix(pose_this);
-      drawModel("witch.obj", 0.02, -PI/2);
-      popMatrix();
-    }
-    else
-    {
-      PMatrix3D pose_this = d_ret.pos[i];
+  d.save();//need to be added at the bottom of the draw()
 
-      if (pose_this == null)
-        continue;
 
-      pushMatrix();
-      // apply matrix (cf. drawSnowman.pde)
-      applyMatrix(pose_this);
-      //rotateX(angle);
-      if (d_ret.min_flag == true && d_ret.min_num == i && badAppleNumber == i)
-        drawModel("bad_apple.obj", 0.02, PI/2); //draw bad
-      else
-        drawModel("apple.obj", 0.02, PI/2); //draw ok
-      popMatrix();
-    }
-  }
-  d.save(); //need to be added at the bottom of the draw()
+
+
+
   noLights();
   keyState.getKeyEvent();
   System.gc();
+  
 }
 
 void captureEvent(Capture c)
