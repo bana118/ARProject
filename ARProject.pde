@@ -4,7 +4,7 @@ import processing.video.*;
 final boolean MARKER_TRACKER_DEBUG = false;
 final boolean BALL_DEBUG = false;
 
-final boolean USE_SAMPLE_IMAGE = false;
+final boolean USE_SAMPLE_IMAGE = true;
 
 // We've found that some Windows build-in cameras (e.g. Microsoft Surface)
 // cannot work with processing.video.Capture.*.
@@ -175,11 +175,12 @@ void draw()
     if (game_init_flag == false)
     {
       float rand = random(1);
-      if (rand < 1 / 3)
+      //println(rand);
+      if (rand < 0.33333)
       {
         bad_apple = 0;
       }
-      else if (rand > 2 / 3)
+      else if (rand > 0.6666)
       {
         bad_apple = 2;
       }
