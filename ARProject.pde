@@ -187,7 +187,7 @@ DetectionRet d_ret=d.detect();
 
   // The snowmen face each other
   for (int i = 0; i < 4; i++) {
-    PMatrix3D pose_this =d_ret.pos[i];
+    PMatrix3D pose_this =markerPoseMap.get(towardsList[i]);
 
     if(pose_this==null)continue;
 
@@ -219,7 +219,7 @@ DetectionRet d_ret=d.detect();
 
 
 
-  d.save();//need to be added at the bottom of the draw()
+//  d.save();//need to be added at the bottom of the draw()
 
 
 
