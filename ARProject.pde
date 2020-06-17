@@ -35,6 +35,8 @@ int score = 0;
 int bad_apple = 0;
 boolean game_init = true;
 boolean game_init_flag = false;
+boolean show_result=false;
+boolean show_result_flag=false;
 long t0 = System.currentTimeMillis();
 
 PVector snowmanLookVector;
@@ -175,11 +177,11 @@ void draw()
     if (game_init_flag == false)
     {
       float rand = random(1);
-      if (rand < 1 / 3)
+      if (rand < 0.3333)
       {
         bad_apple = 0;
       }
-      else if (rand > 2 / 3)
+      else if (rand > 0.6666)
       {
         bad_apple = 2;
       }
@@ -264,33 +266,55 @@ void draw()
       }
       else
       {
-        if (d_ret.min_flag == true && d_ret.min_num == i && d_ret.min_num == bad_apple)
+        if (show_result == true && d_ret.min_num == i && d_ret.min_num == bad_apple)
         {
-          drawModel("bad_apple.obj", 0.02, PI / 2); //draw bad
+          //drawModel("bad_apple.obj", 0.02, PI / 2); //draw bad
+          //DRAW BAD APPLE ANIMATION
+          drawSnowman(snowmanSize,true);
         }
         else
         {
-          drawModel("apple.obj", 0.02, PI / 2); //draw ok
+          //drawModel("apple.obj", 0.02, PI / 2); //draw ok
+          drawSnowman(snowmanSize,false);
         }
       }
-      //drawSnowman(snowmanSize,false);
-      if (d_ret.min_flag == true)
+      
+      if (show_result == false)
       {
-        println("min_flg:" + d_ret.min_flag);
-        println("bad_apple:" + bad_apple);
-        if (d_ret.min_num == bad_apple)
+        if (d_ret.min_flag == true)
         {
-          score += 1;
-          //println("Restart1");
-          //win animation here
-          game_init = true;
+          println("min_flg:" + d_ret.min_flag);
+          println("bad_apple:" + bad_apple);
+          if (d_ret.min_num == bad_apple)
+          {
+            score += 1;
+            //println("Restart1");
+            
+            show_result = true;
+          }
+          else
+          {
+            //println("Restart2");
+            score -= 1;
+            
+            show_result = true;
+          }
         }
-        else
+      }
+      if (show_result == true) //we show the bad apple 3 seconds before restarting the game
+      {
+        long t1 = System.currentTimeMillis();
+        if (show_result_flag==false)
         {
-          //println("Restart2");
-          score -= 1;
-          //lose animation here
-          game_init = true;
+          t0 = System.currentTimeMillis();
+          show_result_flag=true;
+        }
+        long dt=t1-t0;
+        if (dt>3000)
+        {
+          game_init=true;
+          show_result_flag=false;
+          show_result=false;
         }
       }
     }
